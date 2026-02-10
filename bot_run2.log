@@ -1,0 +1,19 @@
+====================================
+Ultimate Alt Manager v2.1.0
+====================================
+[CONFIG] Loaded 20 alts, 3 enabled
+[CONFIG] Servers: A, B
+[STARTUP] Discord connecting...
+[02/10/2026, 05:03:04 AM] SYSTEM_START | author=Wicked | version=2.1.0
+Ultimate Alt Manager v2.1.0 | Booting...
+[02/10/2026, 05:03:05 AM] ✅ Ultimate Alt Manager Online (v2.1.0)
+[02/10/2026, 05:03:05 AM] SYSTEM_START | author=Wicked | version=2.1.0
+[Discord] Connected. If you see old /alts cmd command, logout/login Discord or clear cache.
+[STARTUP] BotManager ready
+Alt manager started v2.1.0 | Ready for commands
+[5:03:05 AM] [MGR] Starting enabled alt: alt1
+[5:03:05 AM] [MGR] alt1: Attempting auth to fatalitynetwork.us:25565
+[5:03:05 AM] [MGR] alt1: Client created, waiting for login event...
+[5:03:05 AM] [MGR] Starting enabled alt: alt2
+[5:03:05 AM] [MGR] Starting enabled alt: alt3
+[5:03:08 AM] [MGR] alt1: online, ign=136L

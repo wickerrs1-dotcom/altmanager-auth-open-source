@@ -17,77 +17,208 @@ function tokenize(s){
 
 function helpEmbed(){
   const e = new EmbedBuilder()
-    .setTitle('🤖 Alt Manager')
-    .setDescription('Use `/alts cmd:"<command>"` to execute. All alts are listed below.')
-    .setColor(0x7289DA)
+    .setTitle('⚔️ Alt Manager - Command Help')
+    .setDescription('Type `/alts <command>` with manual text input')
+    .setColor(0x00AAFF)
     .addFields(
-      { name: '/alts', value: 'Show this help embed (default)', inline: false },
-      { name: '/alts cmd:"ping"', value: '✅ /alts is working', inline: false },
-      { name: '/alts cmd:"list"', value: 'List all alts and states', inline: false },
-      { name: '/alts cmd:"status alt1"', value: 'Get status of alt1', inline: false },
-      { name: '/alts cmd:"start alt1"', value: 'Start alt1', inline: false },
-      { name: '/alts cmd:"stop alt1"', value: 'Stop alt1', inline: false },
-      { name: '/alts cmd:"restart alt1"', value: 'Restart alt1', inline: false },
-      { name: '/alts cmd:"join alt1 A"', value: 'Join alt1 to server A', inline: false },
-      { name: '/alts cmd:"join alt1 B"', value: 'Join alt1 to server B', inline: false },
-      { name: '/alts cmd:"chat alt1 \\"hello\\""', value: 'Send message as alt1', inline: false },
-      { name: '/alts cmd:"logs alt1 50"', value: 'Get last 50 logs for alt1', inline: false },
-      { name: '/alts cmd:"reason alt1"', value: 'Get reason alt1 is offline', inline: false },
-      { name: '/alts cmd:"health"', value: 'Get overall health status', inline: false }
-    );
+      { name: '📋 **Info Commands**', value: '`help` - Show this help\n`list [all]` - Connected alts\n`status <alt>` - Alt details\n`stats` - Statistics\n`health` - System health', inline: true },
+      { name: '🎮 **Control Commands**', value: '`start <alt|ALL>` - Connect\n`stop <alt|ALL>` - Disconnect\n`restart <alt|ALL>` - Reconnect', inline: true },
+      { name: '🌐 **Server Commands**', value: '`move <alt> <A|B>` - Change server\n`join <alt> <A|B>` - Execute join commands', inline: false },
+      { name: '💬 **Chat & Info**', value: '`chat <alt> <msg>` - Send message\n`reason <alt>` - Disconnect reason\n`logs <alt> [#]` - View logs', inline: true },
+      { name: '⚙️ **Configuration**', value: '`enable <alt>` - Enable alt\n`disable <alt>` - Disable alt', inline: true }
+    )
+    .setFooter({ text: '13 alts max | Startup: 20s spacing | Retry: 30s-240s backoff' });
   return { embeds: [e] };
 }
 
 async function handleAlts(interaction, ctx = {}){
   try{
-    // Accept command as direct argument, not requiring 'cmd:' prefix
-    const txt = interaction.options?.getString?.('command') || interaction.options?.getString?.('cmd') || '';
-    if(!txt) return interaction.reply({ ephemeral: true, ...helpEmbed() });
-    const toks = tokenize(txt);
-    if(toks.length === 0) return interaction.reply({ ephemeral: true, ...helpEmbed() });
-    const cmd = toks[0].toLowerCase();
-    const args = toks.slice(1);
-    const bm = ctx.botManager || require('./botManager')({});
+    const bm = ctx.botManager || new (require('./botManager'))({ config: ctx.config, accounts: ctx.accounts, logger: ctx.logger });
+    const { EmbedBuilder } = require('discord.js');
 
-    // map commands to unified API names
+    // Parse manual text input from cmd option
+    const cmdInput = (interaction.options?.getString?.('cmd') || '').trim();
+    if(!cmdInput) return interaction.reply({ ephemeral:true, ...helpEmbed() });
+
+    const parts = tokenize(cmdInput);
+    if(!parts.length) return interaction.reply({ ephemeral:true, ...helpEmbed() });
+
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1);
+
+    // Execute command
     switch(cmd){
-      case 'ping': return interaction.reply({ ephemeral:true, content: '✅ /alts is working' });
+      case 'help': return interaction.reply({ ephemeral:true, ...helpEmbed() });
+      
       case 'list': {
-        const l = bm.list();
-        // Format for sync and clarity
-        return interaction.reply({ ephemeral:true, content: l.length ? l.map(x=>`- ${x}`).join('\n') : 'no alts' });
+        const scope = args[0]?.toLowerCase() === 'all' ? 'all' : 'online';
+        const altsArr = (bm.accounts && bm.accounts.alts) || [];
+        const lines = [];
+        for(const a of altsArr){
+          const details = bm.getAltDetails(a.id);
+          if(!details) {
+            lines.push(`🔴 **${a.id}** — unknown — offline`);
+            continue;
+          }
+          if(scope !== 'all' && !details.isOnline) continue;
+          const emoji = details.isOnline ? '🟢' : (details.isConnecting ? '🟡' : '🔴');
+          lines.push(`${emoji} **${a.id}** — ${details.ign} — ${details.state}`);
+        }
+        const e = new EmbedBuilder()
+          .setTitle('🛡️ Alt List')
+          .setDescription(lines.length ? lines.join('\n') : 'No matching alts')
+          .setColor(0x2f3136)
+          .setFooter({ text: 'Green=online • Yellow=connecting • Red=offline' });
+        return interaction.reply({ ephemeral:true, embeds: [e] });
       }
+
+      case 'stats': {
+        const health = bm.health();
+        const e = new EmbedBuilder()
+          .setTitle('📊 Statistics')
+          .setColor(0x00AA00)
+          .addFields(
+            { name: 'Total', value: String(health.total), inline: true },
+            { name: 'Online', value: String(health.online || 0), inline: true },
+            { name: 'Connecting', value: String(health.connecting || 0), inline: true },
+            { name: 'Offline', value: String(health.down || 0), inline: true }
+          );
+        return interaction.reply({ ephemeral:true, embeds: [e] });
+      }
+
       case 'status': {
-        const s = bm.status(args[0]);
-        if(typeof s === 'string') return interaction.reply({ ephemeral:true, content: s });
-        return interaction.reply({ ephemeral:true, content: s ? Object.entries(s).map(([k,v])=>`${k}: ${v}`).join('\n') : 'not found' });
+        if(!args[0]) return interaction.reply({ ephemeral:true, content: 'Usage: /alts status <alt>' });
+        const alt = args[0];
+        const details = bm.getAltDetails(alt);
+        if(!details) return interaction.reply({ ephemeral:true, content: `Alt ${alt} not found` });
+        const stateColor = details.isOnline ? 0x00AA00 : (details.isConnecting ? 0xFFAA00 : 0xAA0000);
+        const e = new EmbedBuilder()
+          .setTitle(`Status: ${alt}`)
+          .setColor(stateColor)
+          .addFields(
+            { name: 'State', value: String(details.state), inline: true },
+            { name: 'IGN', value: String(details.ign), inline: true },
+            { name: 'Server', value: String(details.server), inline: true },
+            { name: 'Reason', value: String(details.lastReason), inline: false }
+          );
+        return interaction.reply({ ephemeral:true, embeds: [e] });
       }
-      case 'start': { const out = await bm.start(args[0]); return interaction.reply({ ephemeral:true, content: String(out) }); }
-      case 'stop': { const out = await bm.stop(args[0]); return interaction.reply({ ephemeral:true, content: String(out) }); }
-      case 'restart': { const out = await bm.restart(args[0]); return interaction.reply({ ephemeral:true, content: String(out) }); }
-      case 'join': { const out = await bm.join(args[0], args[1]); return interaction.reply({ ephemeral:true, content: String(out) }); }
-      case 'chat': { const target = args[0]; const msg = args.slice(1).join(' '); const out = await bm.chat(target, msg); return interaction.reply({ ephemeral:true, content: String(out) }); }
-      case 'logs': { const n = parseInt(args[1]||args[0]||'100',10) || 100; const out = await bm.logs(args[0]||args[1], n); return interaction.reply({ ephemeral:true, content: String(out) }); }
-      case 'reason': { const out = bm.reason(args[0]); return interaction.reply({ ephemeral:true, content: String(out) }); }
-      case 'health': { const out = bm.health(); return interaction.reply({ ephemeral:true, content: JSON.stringify(out) }); }
-      case 'startall': {
-        // Start all enabled alts
-        const enabledAlts = ctx.accounts?.alts?.filter(a=>a.enabled).map(a=>a.id) || [];
-        const results = await Promise.all(enabledAlts.map(id=>bm.start(id)));
-        return interaction.reply({ ephemeral:true, content: `Started: ${enabledAlts.join(', ')}` });
+
+      case 'start': {
+        if(!args[0]) return interaction.reply({ ephemeral:true, content: 'Usage: /alts start <alt|ALL>' });
+        const target = args[0].toUpperCase();
+        const altsSource = (bm && bm.accounts && Array.isArray(bm.accounts.alts) && bm.accounts.alts) || (ctx.accounts && Array.isArray(ctx.accounts.alts) && ctx.accounts.alts) || [];
+        const alts = target === 'ALL' ? altsSource.map(a=>a.id) : [args[0]];
+        const r = [];
+        for(const a of alts) {
+          const result = await bm.start(a);
+          r.push(result);
+        }
+        return interaction.reply({ ephemeral:true, content: r.join('\n') });
       }
-      case 'startallserver': {
-        // Start all enabled alts for a specific server
-        const serverId = args[0];
-        const enabledAlts = ctx.accounts?.alts?.filter(a=>a.enabled && a.server===serverId).map(a=>a.id) || [];
-        const results = await Promise.all(enabledAlts.map(id=>bm.start(id)));
-        return interaction.reply({ ephemeral:true, content: `Started for server ${serverId}: ${enabledAlts.join(', ')}` });
+
+      case 'stop': {
+        if(!args[0]) return interaction.reply({ ephemeral:true, content: 'Usage: /alts stop <alt|ALL>' });
+        const target = args[0].toUpperCase();
+        const altsSourceStop = (bm && bm.accounts && Array.isArray(bm.accounts.alts) && bm.accounts.alts) || (ctx.accounts && Array.isArray(ctx.accounts.alts) && ctx.accounts.alts) || [];
+        const altsStop = target === 'ALL' ? altsSourceStop.map(a=>a.id) : [args[0]];
+        const r = [];
+        for(const a of altsStop) {
+          const result = await bm.stop(a);
+          r.push(result);
+        }
+        return interaction.reply({ ephemeral:true, content: r.join('\n') });
       }
-      default: return interaction.reply({ ephemeral:true, ...helpEmbed() });
+
+      case 'restart': {
+        if(!args[0]) return interaction.reply({ ephemeral:true, content: 'Usage: /alts restart <alt|ALL>' });
+        const target = args[0].toUpperCase();
+        const altsSourceRestart = (bm && bm.accounts && Array.isArray(bm.accounts.alts) && bm.accounts.alts) || (ctx.accounts && Array.isArray(ctx.accounts.alts) && ctx.accounts.alts) || [];
+        const altsRestart = target === 'ALL' ? altsSourceRestart.map(a=>a.id) : [args[0]];
+        const r = [];
+        for(const a of altsRestart) {
+          const result = await bm.restart(a);
+          r.push(result);
+        }
+        return interaction.reply({ ephemeral:true, content: r.join('\n') });
+      }
+
+      case 'join': {
+        if(!args[0] || !args[1]) return interaction.reply({ ephemeral:true, content: 'Usage: /alts join <alt> <server>' });
+        const alt = args[0];
+        const server = args[1].toUpperCase();
+        if(!['A','B'].includes(server)) return interaction.reply({ ephemeral:true, content: 'Server must be A or B' });
+        const out = await bm.join(alt, server);
+        return interaction.reply({ ephemeral:true, content: String(out) });
+      }
+
+      case 'move': {
+        if(!args[0] || !args[1]) return interaction.reply({ ephemeral:true, content: 'Usage: /alts move <alt> <server>' });
+        const alt = args[0];
+        const server = args[1].toUpperCase();
+        if(!['A','B'].includes(server)) return interaction.reply({ ephemeral:true, content: 'Server must be A or B' });
+        const out = await bm.move(alt, server);
+        return interaction.reply({ ephemeral:true, content: String(out) });
+      }
+
+      case 'chat': {
+        if(!args[0]) return interaction.reply({ ephemeral:true, content: 'Usage: /alts chat <alt> <message>' });
+        const alt = args[0];
+        const msg = args.slice(1).join(' ');
+        if(!msg) return interaction.reply({ ephemeral:true, content: 'Message cannot be empty' });
+        const out = await bm.chat(alt, msg);
+        return interaction.reply({ ephemeral:true, content: String(out) });
+      }
+
+      case 'enable': {
+        if(!args[0]) return interaction.reply({ ephemeral:true, content: 'Usage: /alts enable <alt>' });
+        const alt = args[0];
+        const out = bm.enable(alt);
+        return interaction.reply({ ephemeral:true, content: String(out) });
+      }
+
+      case 'disable': {
+        if(!args[0]) return interaction.reply({ ephemeral:true, content: 'Usage: /alts disable <alt>' });
+        const alt = args[0];
+        const out = bm.disable(alt);
+        return interaction.reply({ ephemeral:true, content: String(out) });
+      }
+
+      case 'logs': {
+        if(!args[0]) return interaction.reply({ ephemeral:true, content: 'Usage: /alts logs <alt> [lines]' });
+        const alt = args[0];
+        const lines = parseInt(args[1] || '50', 10) || 50;
+        const out = await bm.logs(alt, lines);
+        return interaction.reply({ ephemeral:true, content: String(out) });
+      }
+
+      case 'reason': {
+        if(!args[0]) return interaction.reply({ ephemeral:true, content: 'Usage: /alts reason <alt>' });
+        const alt = args[0];
+        const out = bm.reason(alt);
+        return interaction.reply({ ephemeral:true, content: String(out) });
+      }
+
+      case 'health': {
+        const health = bm.health();
+        const e = new EmbedBuilder()
+          .setTitle('🏥 Manager Health')
+          .setColor(0x00AA00)
+          .addFields(
+            { name: 'Total', value: String(health.total), inline: true },
+            { name: 'Online', value: String(health.online || 0), inline: true },
+            { name: 'Connecting', value: String(health.connecting || 0), inline: true },
+            { name: 'Offline', value: String(health.down || 0), inline: true }
+          );
+        return interaction.reply({ ephemeral:true, embeds: [e] });
+      }
+
+      default: 
+        return interaction.reply({ ephemeral:true, content: `Unknown command: ${cmd}\nType /alts help for available commands` });
     }
   }catch(e){
-    try{ console.error(e); }catch{};
-    try{ if(!interaction.replied) await interaction.reply({ ephemeral:true, content: 'Command failed' }); }catch{};
+    try{ console.error(`[alts] Error: ${e.message}`); }catch{};
+    try{ if(!interaction.replied) await interaction.reply({ ephemeral:true, content: 'Command failed: ' + e.message }); }catch{};
   }
 }
 

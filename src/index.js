@@ -15,7 +15,7 @@ async function start() {
 
   // Startup sanity prints
   console.log('====================================');
-  console.log('Wicked Alts v1.3.2');
+  console.log('Ultimate Alt Manager v2.1.0');
   console.log('====================================');
 
   const enabledAlts = accounts.alts.filter(a => a.enabled).length;
@@ -32,19 +32,19 @@ async function start() {
   }
 
   console.log('[STARTUP] Discord connecting...');
-  // Use production BotManager for real mineflayer bots
+  // Use production BotManager for real minecraft-protocol bots
   const RealBotManager = require('./botManager');
   const bm = new RealBotManager({ config, accounts, logger: log });
 
   // Emit system start audit line with version
-  log.audit && log.audit('SYSTEM_START | author=Wicked | version=1.3.2');
-  console.log('Wicked Alts v1.3.2 | Booting...');
+  log.audit && log.audit('SYSTEM_START | author=Wicked | version=2.1.0');
+  console.log('Ultimate Alt Manager v2.1.0 | Booting...');
 
   // Start discord and wire commands to bot manager
   await discord.start({ config, botManager: bm, logger: log, security, alerts });
 
   console.log('[STARTUP] BotManager ready');
-  console.log('Alt manager started v1.3.2 | Ready for commands');
+  console.log('Alt manager started v2.1.0 | Ready for commands');
 }
 
 

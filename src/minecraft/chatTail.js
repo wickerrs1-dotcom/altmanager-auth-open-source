@@ -22,8 +22,18 @@ async function attachChatTail(bot, ctx, client) {
       flushInterval: null
     };
     
+    const format12H = (date) => {
+      const d = new Date(date);
+      const h = d.getHours();
+      const hour12 = h % 12 || 12;
+      const min = String(d.getMinutes()).padStart(2, '0');
+      const sec = String(d.getSeconds()).padStart(2, '0');
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      return `${String(hour12).padStart(2, '0')}:${min}:${sec} ${ampm}`;
+    };
+    
     const onChat = (username, message) => {
-      const line = `[${new Date().toLocaleTimeString()}] ${username}: ${message}`;
+      const line = `[${format12H(new Date())}] ${username}: ${message}`;
       state.buffer.push(line);
       console.log(`[tail] ${altKey}: ${line}`);
       

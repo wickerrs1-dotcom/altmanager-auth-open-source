@@ -21,15 +21,25 @@ function loadConfig() {
 }
 
 function buildCommands() {
-  return [
-    {
-      name: "alts",
-      description: "Alt manager",
-      options: [
-        { type: 3, name: "cmd", description: "Manual command (ex: start alt1, join alt1 server, logs alt1)", required: false }
-      ]
+  // Dynamically load all new modular commands from src/discord/commands/
+  const commands = [];
+  const commandsPath = path.join(process.cwd(), 'src', 'discord', 'commands');
+  
+  if (fs.existsSync(commandsPath)) {
+    const files = fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'));
+    for (const file of files) {
+      try {
+        const cmd = require(path.join(commandsPath, file));
+        if (cmd.data && cmd.data.toJSON) {
+          commands.push(cmd.data.toJSON());
+        }
+      } catch (e) {
+        console.warn(`Warning: Failed to load command ${file}:`, e.message);
+      }
     }
-  ];
+  }
+  
+  return commands;
 }
 
 function buildViewChat() {
@@ -47,12 +57,18 @@ function buildTopLevel() {
   const rest = new REST({ version: "10" }).setToken(token);
   const body = buildCommands().concat(buildTopLevel()).concat(buildViewChat());
 
-  // Deploy to GUILD only (no global registration)
+  // Deploy to GUILD only (clear global commands first if any old ones linger)
   try {
+    // Clear global commands (in case old /alts cmd is registered globally)
+    await rest.put(Routes.applicationCommands(cfg.discord.appId), { body: [] });
+    console.log("✓ Cleared global commands");
+    
+    // Deploy to GUILD only (no global registration)
     await rest.put(Routes.applicationGuildCommands(cfg.discord.appId, cfg.discord.guildId), { body });
-    console.log("✓ Deployed /alts command to GUILD only");
-    console.log('\nCommand JSON:');
-    console.log(JSON.stringify(body, null, 2));
+    console.log("✓ Deployed new commands to GUILD only");
+    console.log(`✓ Registered ${body.length} commands`);
+    console.log('\nCommand list:');
+    body.forEach(cmd => console.log(`  - /${cmd.name}`));
   } catch (e) {
     console.error("✗ Deploy failed:", String(e?.message || e));
     process.exit(1);

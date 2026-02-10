@@ -1,6 +1,6 @@
 const fs=require('fs')
 const path=require('path')
-const mineflayer=require('mineflayer')
+const ProtocolClient = require('./protocolClient')
 const logStore=require('../logging/logStore')
 const {formatMccLine}=require('../logging/mccFormat')
 const discordLogger=require('../logging/discordLogger')
@@ -20,7 +20,7 @@ async function startAlt(altKey, opts){
   opts = opts || {};
   if(botsByAlt[altKey] && (botsByAlt[altKey].state==='connecting' || botsByAlt[altKey].state==='online')) return; // singleton
 
-  // in-process path: create mineflayer bot directly
+    // in-process path: create client directly via protocolClient
   if (opts.inProcess && opts.account && opts.config) {
     try {
       botsByAlt[altKey] = { state: 'connecting', reconnects: botsByAlt[altKey] ? botsByAlt[altKey].reconnects || 0 : 0 };
@@ -29,17 +29,14 @@ async function startAlt(altKey, opts){
       const createOpts = {
         host: server.host,
         port: server.port || 25565,
-        username: opts.account._session?.username || opts.account.username,
-        auth: (opts.account._session ? 'microsoft' : (opts.account.auth || 'offline')),
+        // let minecraft-protocol handle Microsoft device auth when requested
+        username: opts.account.username || opts.account.email || opts.account.id,
+        auth: opts.account.auth || 'microsoft',
         version: server.version || false,
-        viewDistance: server.viewDistance ?? 6,
         profilesFolder
       };
-      if (opts.account._session && opts.account._session.accessToken) {
-        createOpts.accessToken = opts.account._session.accessToken;
-      }
 
-      const bot = mineflayer.createBot(createOpts);
+      const bot = new ProtocolClient(createOpts).connect();
       botsByAlt[altKey].bot = bot;
       bot.server = server.host || String(opts.account.server || '-');
       botEvents.attach(bot, altKey);
@@ -162,8 +159,11 @@ function getLastReason(alt){ return botsByAlt[alt]?.lastReason || null }
 function getHealth(){ return stats(); }
 function getConfigSummary(){ return { maxConcurrent: MAX_CONCURRENT, inProcessEnabled: !!(config.pool && config.pool.useInProcessBots) } }
 
-const { getSession } = require('../auth/msAuth');
-async function getAuthStatus(alt){ try{ const s = await getSession(alt, { refreshToken: null }, config); if(!s) return { type: 'unknown', cache: false }; return { type: s.accessToken? 'microsoft':'offline', cache: true, expiresIn: Math.max(0, s.expiresAt - Math.floor(Date.now()/1000)) }; }catch(e){ return { error: String(e) } } }
+async function getAuthStatus(alt){
+  // Authentication is handled by minecraft-protocol's built-in Microsoft flow.
+  // We cannot introspect cached tokens here reliably, so return a best-effort status.
+  return { type: 'microsoft', cache: false };
+}
 
 const playerAlerts = require('./playerAlerts');
 
@@ -210,4 +210,4 @@ function computeBackoffMs(reasonText, retryCount){
   return isThrottle ? Math.max(MIN_MS, normal) : normal;
 }
 
-function timeNow(){ const d=new Date(); return [d.getHours().toString().padStart(2,'0'),d.getMinutes().toString().padStart(2,'0'),d.getSeconds().toString().padStart(2,'0')].join(':') }
+function timeNow(){ const d=new Date(); const h=d.getHours(); const h12=h%12||12; const ampm=h>=12?'PM':'AM'; return [h12.toString().padStart(2,'0'),d.getMinutes().toString().padStart(2,'0'),d.getSeconds().toString().padStart(2,'0')].join(':')+' '+ampm }

@@ -1,0 +1,77 @@
+{
+  "minecraft": {
+    "version": "1.8.9"
+  },
+
+  "servers": {
+    "A": { "host": "server1.example.net", "autoJoin": ["/server factions"], "chatRelayAlt": "alt1" },
+    "B": { "host": "server2.example.net", "autoJoin": ["/factions"] }
+  },
+
+  "limits": {
+    "maxAltsTotal": 20,
+    "maxServers": 2,
+    "maxAltsPerServer": 10,
+    "maxConcurrentConnecting": 2
+  },
+
+  "connect": {
+    "spacingMs": 25000,
+    "connectTimeoutMs": 20000,
+    "checkTimeoutIntervalMs": 30000,
+    "watchdogMs": 45000
+  },
+
+  "reconnect": {
+    "minBackoffSeconds": 300,
+    "maxBackoffSeconds": 900,
+    "jitterSeconds": 30
+  },
+
+  "console": {
+    "enabled": true,
+    "watchAlt": "alt1",
+    "showStatus": true,
+    "showChat": true
+  },
+
+  "antiAfk": {
+    "enabled": true,
+    "intervalMinSeconds": 120,
+    "intervalMaxSeconds": 240,
+    "commands": ["/bal"]
+  },
+
+  "chat": {
+    "enabled": true,
+    "typingDelayMs": { "min": 700, "max": 1600 },
+    "cooldownSeconds": 25,
+    "stripColors": true
+  },
+
+  "discord": {
+    "guildId": "0000000000000000",
+    "channelId": "0000000000000000"
+  },
+
+  "whitelist": {
+    "useCached": true,
+    "serverFilePath": "./whitelist.txt"
+  },
+
+  "auth": {
+    "cacheMs": 3600000,
+    "retryAttempts": 3
+  },
+
+  "staff": {
+    "detectionEnabled": true,
+    "signalThreshold": 2,
+    "windowMs": 30000,
+    "signals": [
+      "op",
+      "vanish",
+      "staff-mode"
+    ]
+  }
+}

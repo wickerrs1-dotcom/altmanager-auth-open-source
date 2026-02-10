@@ -1,0 +1,30 @@
+{
+  "defaults": {
+    "auth": "microsoft",
+    "server": "A",
+    "enabled": false,
+    "join": []
+  },
+  "alts": [
+    { "id": "alt1",  "email": "account1@outlook.com", "enabled": true,  "server": "A", "join": ["/factions"] },
+    { "id": "alt2",  "email": "account2@outlook.com", "enabled": true,  "server": "A", "join": ["/factions"] },
+    { "id": "alt3",  "email": "account3@gmail.com",  "enabled": true, "server": "A", "join": ["/factions"] },
+    { "id": "alt4",  "email": "account4@outlook.com",  "enabled": true, "server": "A", "join": ["/factions"] },
+    { "id": "alt5",  "email": "account5@outlook.com",  "enabled": false, "server": "A", "join": ["/factions"] },
+    { "id": "alt6",  "email": "account6@gmail.com",  "enabled": false, "server": "A", "join": ["/factions"] },
+    { "id": "alt7",  "email": "account7@gmail.com",  "enabled": false, "server": "A", "join": ["/factions"] },
+    { "id": "alt8",  "email": "account8@outlook.com",  "enabled": false, "server": "B", "join": ["/factions"] },
+    { "id": "alt9",  "email": "account9@gmail.com",  "enabled": false, "server": "B", "join": ["/factions"] },
+    { "id": "alt10", "email": "account10@gmail.com", "enabled": false, "server": "B", "join": ["/factions"] },
+    { "id": "alt11", "email": "account11@outlook.com", "enabled": false, "server": "B", "join": ["/factions"] },
+    { "id": "alt12", "email": "account12@outlook.com", "enabled": false, "server": "B", "join": ["/factions"] },
+    { "id": "alt13", "email": "account13@example.com", "enabled": false, "server": "B", "join": [] },
+    { "id": "alt14", "email": "account14@example.com", "enabled": false, "server": "B", "join": [] },
+    { "id": "alt15", "email": "account15@example.com", "enabled": false, "server": "B", "join": [] },
+    { "id": "alt16", "email": "account16@example.com", "enabled": false, "server": "B", "join": [] },
+    { "id": "alt17", "email": "account17@example.com", "enabled": false, "server": "B", "join": [] },
+    { "id": "alt18", "email": "account18@example.com", "enabled": false, "server": "B", "join": [] },
+    { "id": "alt19", "email": "account19@example.com", "enabled": false, "server": "B", "join": [] },
+    { "id": "alt20", "email": "account20@example.com", "enabled": false, "server": "B", "join": [] }
+  ]
+}

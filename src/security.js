@@ -3,7 +3,13 @@ const { redactSecrets } = require('./security/redact');
 const { maskId } = require('./security/mask');
 
 function init() {
-  dotenv.config();
+  const oldLog = console.log;
+  const oldWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+  dotenv.config({ debug: false });
+  console.log = oldLog;
+  console.warn = oldWarn;
 }
 
 function safeLog(s) {

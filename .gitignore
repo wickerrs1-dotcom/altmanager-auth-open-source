@@ -10,3 +10,4 @@ logs/
 *.cache
 .DS_Store
 Thumbs.db
+EDIT_ME/

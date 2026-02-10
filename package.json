@@ -1,7 +1,7 @@
 {
   "name": "ultimate-alt-manager-final",
-  "version": "1.3.2",
-  "description": "Wicked Alt Manager — MS-auth cached Mineflayer alt manager with Discord control",
+  "version": "2.1.0",
+  "description": "Wicked Ultimate Alt Manager — Microsoft device-code auth with minecraft-protocol, Discord control",
   "author": "Wicked",
   "private": true,
   "type": "commonjs",
@@ -28,10 +28,7 @@
     "discord.js": "^14.15.3",
     "dotenv": "^17.2.4",
     "minecraft-data": "^3.103.0",
-    "minecraft-protocol": "^1.54.0",
-    "mineflayer": "^3.11.2",
-    "mineflayer-pathfinder": "^1.7.2",
-    "prismarine-auth": "^2.7.0"
+    "minecraft-protocol": "^1.54.0"
   },
   "devDependencies": {
     "jest": "^30.2.0"
