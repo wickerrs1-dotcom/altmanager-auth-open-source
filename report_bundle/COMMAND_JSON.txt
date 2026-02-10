@@ -1,0 +1,13 @@
+{
+  "options": [
+    {
+      "type": 3,
+      "name": "cmd",
+      "description": "Manual command, e.g. start alt1 | list | logs alt1",
+      "required": false
+    }
+  ],
+  "name": "alts",
+  "description": "Alt manager (manual text commands)",
+  "type": 1
+}

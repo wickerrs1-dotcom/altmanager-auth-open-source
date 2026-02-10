@@ -1,0 +1,39 @@
+{
+  "name": "ultimate-alt-manager-final",
+  "version": "1.3.2",
+  "description": "Wicked Alt Manager — MS-auth cached Mineflayer alt manager with Discord control",
+  "author": "Wicked",
+  "private": true,
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "doctor": "node tools/doctor.js",
+    "wizard": "node tools/setupWizard.js",
+    "deploy": "node tools/deployCommands.js",
+    "deploy:commands": "node tools/deployCommands.js",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
+    "test:ci": "jest --runInBand",
+    "share": "node scripts/make_share_bundle.js",
+    "report": "node scripts/report.js",
+    "clean": "node scripts/cleanup.js",
+    "changelog": "node scripts/changelog.js",
+    "accounts:template": "node scripts/make_accounts_template.js",
+    "final": "node scripts/final_check.js"
+  },
+  "dependencies": {
+    "@discordjs/rest": "^2.6.0",
+    "discord-api-types": "^0.38.38",
+    "discord.js": "^14.15.3",
+    "dotenv": "^17.2.4",
+    "minecraft-data": "^3.103.0",
+    "minecraft-protocol": "^1.54.0",
+    "mineflayer": "^3.11.2",
+    "mineflayer-pathfinder": "^1.7.2",
+    "prismarine-auth": "^2.7.0"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0"
+  }
+}

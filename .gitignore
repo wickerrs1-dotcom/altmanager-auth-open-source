@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+.env.*.local
+config.json
+accounts.json
+state/
+logs/
+*.session
+*.cache
+.DS_Store
+Thumbs.db

@@ -1,0 +1,14 @@
+
+PASS tests/stress.test.js
+PASS tests/botManager.test.js
+PASS tests/altsCommand.test.js
+PASS tests/msAuth.test.js
+PASS tests/alertTemplate.test.js
+PASS tests/redact.test.js
+PASS tests/parser.test.js
+
+Test Suites: 7 passed, 7 total
+Tests:       40 passed, 40 total
+Snapshots:   0 total
+Time:        6.49 s, estimated 7 s
+Ran all test suites.

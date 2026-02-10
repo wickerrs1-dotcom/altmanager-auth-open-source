@@ -1,0 +1,6 @@
+Accounts schema:
+
+{
+  "defaults": { "auth": "microsoft", "server": "A", "enabled": true, "join": ["/server factions"] },
+  "alts": [ { "id": "alt1", "email": "", "enabled": true, "server": "A", "join": [] }, ... up to alt20 ]
+}
